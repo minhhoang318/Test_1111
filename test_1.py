@@ -70,7 +70,7 @@ def detection_thread(video_thread, interpreter, input_details, output_details, l
 
 def main():
     # Đọc nhãn COCO từ file
-    with open("/media/pi/CENTOS-STRE/test_detection/Detection_IoT/assets/coco_labels.txt", "r") as f:
+    with open("/media/pi/CENTOS-STRE/Detection_IoT/assets/coco_labels.txt", "r") as f:
         labels = f.read().strip().split("\n")
 
     # Tải mô hình TensorFlow Lite
