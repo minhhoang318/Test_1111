@@ -9,6 +9,7 @@ class VideoCaptureThread:
         self.cap = cv2.VideoCapture(src)
         self.frame = None
         self.running = True
+        self.detections = []  # Danh sách lưu trữ bounding boxes
         self.thread = threading.Thread(target=self.update, daemon=True)
         self.thread.start()
 
@@ -27,7 +28,7 @@ class VideoCaptureThread:
 
 def detection_thread(video_thread, interpreter, input_details, output_details, labels):
     previous_count = 0  # Biến để lưu số lượng người trước đó
-    while True:
+    while video_thread.running:  # Kiểm tra biến running
         frame = video_thread.get_frame()
         if frame is not None:
             # Thay đổi kích thước khung hình cho đầu vào mô hình
@@ -41,26 +42,35 @@ def detection_thread(video_thread, interpreter, input_details, output_details, l
             interpreter.invoke()
 
             # Lấy kết quả từ mô hình
-            boxes = interpreter.get_tensor(output_details[0]['index'])[0]
-            classes = interpreter.get_tensor(output_details[1]['index'])[0]
-            scores = interpreter.get_tensor(output_details[2]['index'])[0]
+            boxes = interpreter.get_tensor(output_details[0]['index'])[0]  # Hộp giới hạn
+            classes = interpreter.get_tensor(output_details[1]['index'])[0]  # Nhãn
+            scores = interpreter.get_tensor(output_details[2]['index'])[0]  # Điểm
 
             # Khởi tạo biến đếm số người
             person_count = 0
+            video_thread.detections.clear()  # Xóa danh sách bounding boxes trước đó
 
             # Duyệt qua các kết quả và tìm nhãn "person" (người)
             for i in range(len(scores)):
-                if scores[i] > 0.5:  # Chỉ xử lý nếu độ chính xác > 0.3
+                if scores[i] > 0.4:  # Chỉ xử lý nếu độ chính xác > 0.5
                     class_id = int(classes[i])
                     if labels[class_id] == "person":
                         person_count += 1  # Tăng biến đếm nếu phát hiện người
 
+                        # Lấy thông tin hộp giới hạn
+                        #box = boxes[i]
+                        #ymin, xmin, ymax, xmax = box
+
+                        # Chuyển đổi tọa độ từ tỷ lệ (0-1) sang pixel
+                        #height, width, _ = frame.shape
+                       # (left, right, top, bottom) = (int(xmin * width), int(xmax * width), int(ymin * height), int(ymax * height))
+
+                        # Thêm hộp giới hạn vào danh sách
+                        #video_thread.detections.append((left, top, right, bottom))
+
             # Ghi lại số người phát hiện
             if person_count != previous_count:
                 print(f"Có {person_count} người trong khung hình!")
-                # Gửi thông báo hoặc thực hiện hành động cần thiết
-                # Ví dụ: gửi thông báo tới một hệ thống hoặc ghi lại vào file
-
                 previous_count = person_count  # Cập nhật số lượng trước đó
 
             # Cập nhật số lượng người phát hiện vào biến toàn cục để hiển thị
@@ -92,6 +102,10 @@ def main():
     while True:
         frame = video_thread.get_frame()
         if frame is not None:
+            # Vẽ các bounding box trên khung hình
+            for (left, top, right, bottom) in video_thread.detections:
+                cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2)  # Màu xanh lá cây, độ dày 2
+
             # Tạo background cho số lượng người
             background_height = 50  # Chiều cao của background
             cv2.rectangle(frame, (0, 0), (400, background_height), (0, 0, 0), -1)  # Hình chữ nhật màu đen
@@ -106,7 +120,8 @@ def main():
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-    video_thread.stop()
+    video_thread.stop()  # Dừng luồng video
+    detection_thread_instance.join()  # Đợi luồng nhận diện dừng lại
     cv2.destroyAllWindows()
 
 if __name__ == "__main__":
