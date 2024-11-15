@@ -3,6 +3,10 @@ import threading
 import numpy as np
 import tensorflow as tf
 import time
+import paho.mqtt.client as mqtt
+from main import hydro
+
+
 
 class VideoCaptureThread:
     def __init__(self, src=0):
@@ -27,56 +31,67 @@ class VideoCaptureThread:
         self.cap.release()
 
 def detection_thread(video_thread, interpreter, input_details, output_details, labels):
-    previous_count = 0  # Biến để lưu số lượng người trước đó
-    while video_thread.running:  # Kiểm tra biến running
+    previous_count = 0
+    stable_count = 0
+    stable_timer = time.time()
+    debounce_time = 2
+
+    while video_thread.running:
         frame = video_thread.get_frame()
         if frame is not None:
-            # Thay đổi kích thước khung hình cho đầu vào mô hình
             resized_frame = cv2.resize(frame, (input_details[0]['shape'][2], input_details[0]['shape'][1]))
-
-            # Chuẩn bị đầu vào cho mô hình
             input_data = np.expand_dims(resized_frame, axis=0).astype(np.uint8)
 
-            # Đưa khung hình vào mô hình để nhận diện
             interpreter.set_tensor(input_details[0]['index'], input_data)
             interpreter.invoke()
 
-            # Lấy kết quả từ mô hình
-            boxes = interpreter.get_tensor(output_details[0]['index'])[0]  # Hộp giới hạn
-            classes = interpreter.get_tensor(output_details[1]['index'])[0]  # Nhãn
-            scores = interpreter.get_tensor(output_details[2]['index'])[0]  # Điểm
+            boxes = interpreter.get_tensor(output_details[0]['index'])[0]
+            classes = interpreter.get_tensor(output_details[1]['index'])[0]
+            scores = interpreter.get_tensor(output_details[2]['index'])[0]
 
-            # Khởi tạo biến đếm số người
             person_count = 0
-            video_thread.detections.clear()  # Xóa danh sách bounding boxes trước đó
+            video_thread.detections.clear()
 
-            # Duyệt qua các kết quả và tìm nhãn "person" (người)
             for i in range(len(scores)):
-                if scores[i] > 0.4:  # Chỉ xử lý nếu độ chính xác > 0.5
+                if scores[i] > 0.4:
                     class_id = int(classes[i])
                     if labels[class_id] == "person":
-                        person_count += 1  # Tăng biến đếm nếu phát hiện người
+                        person_count += 1
 
-                        # Lấy thông tin hộp giới hạn
-                        #box = boxes[i]
-                        #ymin, xmin, ymax, xmax = box
-
-                        # Chuyển đổi tọa độ từ tỷ lệ (0-1) sang pixel
-                        #height, width, _ = frame.shape
-                       # (left, right, top, bottom) = (int(xmin * width), int(xmax * width), int(ymin * height), int(ymax * height))
-
-                        # Thêm hộp giới hạn vào danh sách
-                        #video_thread.detections.append((left, top, right, bottom))
-
-            # Ghi lại số người phát hiện
-            if person_count != previous_count:
-                print(f"Có {person_count} người trong khung hình!")
-                previous_count = person_count  # Cập nhật số lượng trước đó
-
-            # Cập nhật số lượng người phát hiện vào biến toàn cục để hiển thị
+            # Cập nhật số lượng người ngay lập tức để hiển thị
             video_thread.current_person_count = person_count
 
-        time.sleep(0.1)  # Tạm dừng một chút trước khi tiếp tục nhận diện
+            # Chỉ gửi thông báo khi số lượng người thay đổi ổn định
+            if person_count != stable_count:
+                stable_count = person_count
+                stable_timer = time.time()
+
+            if (time.time() - stable_timer > debounce_time) and (stable_count != previous_count):
+                mqtt_send_notification(stable_count)
+                print(f"Có {stable_count} người trong khung hình! Gửi thông báo MQTT.")
+                previous_count = stable_count
+
+        time.sleep(0.1)
+
+# Luồng gửi thông báo qua MQTT
+def mqtt_send_notification(person_count):
+    broker = "broker.emqx.io"
+    port = 1883
+    topic = "/AIRC/Fan1/"
+    
+    # Tạo client MQTT và kết nối tới broker
+    client = mqtt.Client()
+    client.connect(broker, port, 60)
+
+    # Gửi lệnh bật/tắt quạt dựa trên số lượng người
+    if person_count > 0:
+        client.publish(topic, "ON")
+        print("Đã gửi lệnh: Bật quạt")
+    else:
+        client.publish(topic, "OFF")
+        print("Đã gửi lệnh: Tắt quạt")
+
+    client.disconnect()
 
 def main():
     # Đọc nhãn COCO từ file
@@ -126,3 +141,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

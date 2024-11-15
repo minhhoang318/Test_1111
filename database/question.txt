@@ -1,0 +1,23 @@
+hello
+xin chào
+hai
+bạn tên là gì
+bạn bao nhiêu tuổi
+bạn sống ở đâu
+airc là gì
+bạn có phải là assistant không
+bật đèn
+tắt đèn
+oke
+nhiệt độ hiện tại
+nhiệt độ bây giờ
+nhiệt độ
+độ ẩm hiện tại
+độ ẩm bây giờ
+độ ẩm
+bật quạt
+tắt quạt
+điều chỉnh quạt
+cảm ơn
+thật
+chuẩn
