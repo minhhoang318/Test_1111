@@ -8,6 +8,7 @@ from pymongo import MongoClient
 import certifi
 from time import sleep
 
+#1111
 # Kết nối tới MongoDB Atlas
 server = 'mongodb+srv://ducanhnguyenxuan51:ducanhnguyenxuan51@dataenviromentairc.ux7gs.mongodb.net/?retryWrites=true&w=majority&appName=DataEnviromentAIRC'
 client = MongoClient(server, tlsCAFile=certifi.where())
