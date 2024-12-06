@@ -1,0 +1,15 @@
+#opencv-python
+#picamera
+#opencv-contrib-python
+#tensorflow
+SpeechRecognition
+pygame
+playsound
+DateTime
+gTTS
+gpiozero
+pymongo
+certifi
+numpy
+paho-mqtt
+wikipedia

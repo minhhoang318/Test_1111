@@ -6,7 +6,7 @@ def hear():
     print("Đang hóng: ...")
     r = sr.Recognizer()
 
-    with sr.Microphone() as source:
+    with sr.Microphone(device_index=3) as source:
         print("Tôi: ", end='')
         audio = r.listen(source, phrase_time_limit=3)
         try:

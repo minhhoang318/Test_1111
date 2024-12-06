@@ -2,12 +2,11 @@ from mypackage.library import *
 from mypackage.myfunction import *
 from mypackage.speak_hear import *
 from datetime import datetime
-from gpiozero import LED
+#from gpiozero import LED
 from pymongo import MongoClient
 import certifi
 from time import sleep
 import re
-
 import paho.mqtt.client as mqtt
 
 # Kết nối tới MongoDB Atlas
@@ -16,8 +15,8 @@ client = MongoClient(server, tlsCAFile=certifi.where())
 db = client['DataEnviroment']
 collection = db['AIRC']
 
-led_speak = LED(23)
-led_hear = LED(24)
+#led_speak = LED(23)
+#led_hear = LED(24)
 
 
 # Thiết lập MQTT
@@ -63,17 +62,17 @@ def hydro():
         with open("database/answer.txt", mode="r", encoding="utf8") as f:
             answers = f.readlines()
 
-        led_hear.off()
-        led_speak.on()
+        #led_hear.off()
+        #led_speak.on()
 
         while True:
             # Lắng nghe lệnh "xin chào" để bắt đầu tương tác
             while True:
-                led_hear.on()
-                led_speak.off()
+                #led_hear.on()
+                #led_speak.off()
                 you = hear()  # Lắng nghe câu nói từ người dùng
-                led_hear.off()
-                led_speak.on()
+                #led_hear.off()
+                #led_speak.on()
 
                 if you is None:
                     continue  # Nếu không nghe thấy gì, tiếp tục lắng nghe
@@ -86,9 +85,9 @@ def hydro():
                 you = hear()  # Lắng nghe câu nói từ người dùng
 
                 if you is None:
-                    #speak("Em chưa nghe sếp nói gì, sếp nói lại đi")
-                    led_hear.on()
-                    led_speak.off()
+                    speak("Em chưa nghe sếp nói gì, sếp nói lại đi")
+                    #led_hear.on()
+                    #led_speak.off()
 
                 # Kiểm tra câu hỏi về nhiệt độ
                 elif "nhiệt độ" in you.lower():
