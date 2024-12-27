@@ -1,14 +1,14 @@
 from mypackage.library import*
 from gtts import gTTS
-
+import pygame
 
 def hear():
-    print("Đang hóng: ...")
+    print("Đang chờ: ...")
     r = sr.Recognizer()
 
-    with sr.Microphone(device_index=3) as source:
+    with sr.Microphone() as source:
         print("Tôi: ", end='')
-        audio = r.listen(source, phrase_time_limit=3)
+        audio = r.listen(source, phrase_time_limit=5)
         try:
             text = r.recognize_google(audio, language="vi-VN")
             print(text)
@@ -20,20 +20,22 @@ def hear():
             print(f"Không thể kết nối tới Google Speech Recognition service; {e}")
             return None
 
-import pygame
+
 
 def speak(text):
-    print("Bờ dô: " + text)
+    print("Thư ký: " + text)
     tts = gTTS(text, lang='vi', slow=False)
     tts.save("sound.mp3")
 
-    # Khởi tạo pygame mixer và phát âm thanh
     pygame.mixer.init()
     pygame.mixer.music.load("sound.mp3")
     pygame.mixer.music.play()
 
-    while pygame.mixer.music.get_busy():  # Đợi âm thanh kết thúc
+    while pygame.mixer.music.get_busy():
         pygame.time.Clock().tick(10)
 
-    os.remove("sound.mp3")
+    pygame.mixer.music.stop()  # Dừng phát nhạc
+    pygame.mixer.quit()        # Giải phóng mixer
+    os.remove("sound.mp3")     # Xóa file
+
 

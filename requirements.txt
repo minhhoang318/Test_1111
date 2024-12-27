@@ -1,5 +1,4 @@
 #opencv-python
-#picamera
 #opencv-contrib-python
 #tensorflow
 SpeechRecognition
