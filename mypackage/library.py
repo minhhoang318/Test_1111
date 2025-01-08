@@ -1,7 +1,7 @@
 import speech_recognition as sr
-from gtts import gTTS
-import playsound
+import pygame
 import os
+from gtts import gTTS
 import numpy as np
 from datetime import date, datetime, time
 #from gpiozero import LED
@@ -11,3 +11,6 @@ from time import sleep
 import re
 import wikipedia 
 import paho.mqtt.client as mqtt
+from skfuzzy import control as ctrl
+import skfuzzy as fuzz
+import threading

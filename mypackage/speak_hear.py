@@ -1,6 +1,4 @@
-from mypackage.library import*
-from gtts import gTTS
-import pygame
+from .library import pygame, sr, gTTS, os
 
 def hear():
     print("Đang chờ: ...")
@@ -14,13 +12,11 @@ def hear():
             print(text)
             return str(text).lower()
         except sr.UnknownValueError:
-            print("Google Speech Recognition không thể nhận diện âm thanh.")
+            #print("Google Speech Recognition không thể nhận diện âm thanh.")
             return None
         except sr.RequestError as e:
-            print(f"Không thể kết nối tới Google Speech Recognition service; {e}")
+            #print(f"Không thể kết nối tới Google Speech Recognition service; {e}")
             return None
-
-
 
 def speak(text):
     print("Thư ký: " + text)
@@ -37,5 +33,4 @@ def speak(text):
     pygame.mixer.music.stop()  # Dừng phát nhạc
     pygame.mixer.quit()        # Giải phóng mixer
     os.remove("sound.mp3")     # Xóa file
-
 

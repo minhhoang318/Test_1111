@@ -86,7 +86,7 @@ def auto_control():
                         fan_status = vofancontrol(temperature, humidity, num_people)
                         print(f"Quyết định tự động: {fan_status}")
 
-                        # Gửi qua MQTT
+                        # Gửi qua MQTT  
                         mqtt_client.publish("/AIRC/Fan1/", fan_status)
 
                         # Phản hồi qua giọng nói (tùy chọn)
@@ -194,8 +194,8 @@ def hydro():
             speak("Tôi gặp lỗi, sếp thử lại nhé!")
 
 # Khởi chạy luồng tự động
-auto_thread = threading.Thread(target=auto_control, daemon=True)
-auto_thread.start()
+#auto_thread = threading.Thread(target=auto_control, daemon=True)
+#auto_thread.start()
 
 # Bắt đầu giao tiếp với người dùng
 hydro()
